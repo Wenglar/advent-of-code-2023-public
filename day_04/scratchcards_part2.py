@@ -1,0 +1,75 @@
+import re
+import os
+from typing import List, Set
+from dataclasses import dataclass
+
+
+DIRPATH = os.path.dirname(__file__)
+FILEPATH = os.path.abspath(os.path.join(DIRPATH, 'input.txt'))
+
+example = [
+    "Card 1: 41 48 83 86 17 | 83 86  6 31 17  9 48 53",
+    "Card 2: 13 32 20 16 61 | 61 30 68 82 17 32 24 19",
+    "Card 3:  1 21 53 59 44 | 69 82 63 72 16 21 14  1",
+    "Card 4: 41 92 73 84 69 | 59 84 76 51 58  5 54 83",
+    "Card 5: 87 83 26 28 32 | 88 30 70 12 93 22 82 36",
+    "Card 6: 31 18 13 56 72 | 74 77 10 23 35 67 36 11",
+]
+
+
+@dataclass
+class Card():
+    winning: Set[str]
+    got: List[str]
+    copies: int = 1
+
+
+pattern = re.compile('\d+')
+
+
+def read_info_from_line(txt):
+    _, txt = txt.split(':')
+    winning_txt, got_txt = txt.split('|')
+
+    winning = pattern.findall(winning_txt)
+    got = pattern.findall(got_txt)
+
+    return Card(winning, got)
+
+def get_match_nr(card: Card):
+    value = 0
+
+    for element in card.got:
+        if element in card.winning:
+            value += 1
+
+    return value
+
+
+cards: List[Card] = []
+result = 0
+
+
+with open(FILEPATH, encoding='utf-8') as input_:
+    # input_ = example
+    for line_nr, line_raw in enumerate(input_):
+        line = line_raw.replace('\n', '')
+        if not line:
+            continue
+        card = read_info_from_line(line)
+        cards.append(card)
+
+card_cnt = len(cards)
+
+for nr, card in enumerate(cards, start=1):
+    matches = get_match_nr(card)
+    print(nr, matches, card.copies)
+
+    result += card.copies
+
+    max_ = min(nr + matches, card_cnt)
+
+    for i in range(nr, max_):
+        cards[i].copies += (1 * card.copies)
+
+print(result)
