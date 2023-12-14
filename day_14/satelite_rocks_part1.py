@@ -36,14 +36,9 @@ example_result = [
 ]
 
 
-@dataclass
-class Position():
-    x: int
-    y: int
-
-
-fixed: List[Position] = []
-mobile: List[Position] = []
+fixed: Set[Tuple[int, int]] = set()
+mobile: Set[Tuple[int, int]] = set()
+mobile2: Set[Tuple[int, int]] = set()
 
 
 with open(FILEPATH, encoding='utf-8') as input_:
@@ -52,27 +47,24 @@ with open(FILEPATH, encoding='utf-8') as input_:
         line = line_raw.strip('\n')
         for x, c in enumerate(line):
             if c == '#':
-                fixed.append(Position(x, y))
+                fixed.add((x, y))
             elif c == "O":
-                mobile.append(Position(x, y))
+                mobile.add((x, y))
 
 y_edge = y + 1
 
 
-for idx, rock in enumerate(mobile):
-    new_pos = deepcopy(rock)
-    new_pos.y -= 1
+for x, y in sorted(list(mobile), key=lambda x: (x[1])):
+    y -= 1
+    while y > -1 and (x,y) not in fixed and (x,y) not in mobile2:
+        y -= 1
 
-    while new_pos.y > -1 and new_pos not in fixed and new_pos not in mobile:
-        new_pos.y -= 1
-
-    mobile[idx].y = new_pos.y + 1
+    mobile2.add((x, y+1))
 
 result = 0
-mobile.sort(key=lambda x: (x.x))
 
-for rock in mobile:
-    result += (y_edge - rock.y)
-    # print(rock.x, rock.y)
+for rock in mobile2:
+    result += (y_edge - rock[1])
+    # print(rock)
 
 print(result)
